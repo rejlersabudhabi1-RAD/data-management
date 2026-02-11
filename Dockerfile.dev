@@ -1,0 +1,25 @@
+# Lightweight Dockerfile for faster rebuilds during development
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+
+WORKDIR /app
+
+# Install only essential system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy project
+COPY . .
+
+EXPOSE 8000
+
+# Development server with auto-reload
+CMD python manage.py migrate --noinput && \
+    python manage.py runserver 0.0.0.0:8000
